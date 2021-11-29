@@ -38,8 +38,24 @@ public class Guard : MonoBehaviour
         }
     }
 
-    public int counter = 0;
+    private int counter = 0;
 
+    //FOV variables
+    private float viewDistance;
+    private float viewAngle;
+    static GameObject PlayerObj;
+
+    private void Awake()
+    {
+        if (PlayerObj == null)
+        {
+            PlayerObj = GameObject.FindGameObjectWithTag("Player");
+        }
+        else
+        {
+            return;
+        }
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -61,7 +77,7 @@ public class Guard : MonoBehaviour
         {
 
             Gizmos.DrawWireSphere(item.position, 0.3f);
-            Gizmos.color = Color.green;
+            Gizmos.color = Color.yellow;
 
             Gizmos.DrawLine(secondPos, item.position);
             secondPos = item.position;
@@ -106,4 +122,12 @@ public class Guard : MonoBehaviour
         }
     }
 
+    bool isTargetFound()
+    {
+        if (Vector2.Distance(transform.position,PlayerObj.transform.position) < viewDistance)
+        {
+            
+        }
+        return false;
+    }
 }
