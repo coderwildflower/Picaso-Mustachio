@@ -41,8 +41,16 @@ public class Guard : MonoBehaviour
     private int counter = 0;
 
     //FOV variables
-    private float viewDistance;
+    [SerializeField]
     private float viewAngle;
+
+    [SerializeField]
+    bool isPlayerVisible;
+
+    [SerializeField]
+    private float radius;
+
+    public LayerMask playerLayer;
     static GameObject PlayerObj;
 
     private void Awake()
@@ -59,13 +67,13 @@ public class Guard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(Patrol(pointsToMove));
+        //StartCoroutine(Patrol(pointsToMove));
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        detectPlayer();
     }
 
     private void OnDrawGizmos()
@@ -75,14 +83,18 @@ public class Guard : MonoBehaviour
 
         foreach (var item in pointsToMove)
         {
-
+            Gizmos.color = Color.gray;
             Gizmos.DrawWireSphere(item.position, 0.3f);
-            Gizmos.color = Color.yellow;
+
 
             Gizmos.DrawLine(secondPos, item.position);
             secondPos = item.position;
         }
         Gizmos.DrawLine(secondPos, startPos);
+
+        //Find target
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, radius);
     }
 
     IEnumerator Patrol(Transform[] moveTargetPos)
@@ -100,7 +112,7 @@ public class Guard : MonoBehaviour
                     counter = 0;
                 }
                 yield return new WaitForSeconds(holdDuration);
-                yield return StartCoroutine(lookAtTarget(moveTargetPos[counter]));
+                //yield return StartCoroutine(lookAtTarget(moveTargetPos[counter]));
             }
 
             yield return null;
@@ -114,7 +126,7 @@ public class Guard : MonoBehaviour
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90;
 
         Quaternion rot = Quaternion.AngleAxis(angle, Vector3.forward);
-        while (Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z,angle)) > 0.1f)
+        while (Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, angle)) > 0.1f)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, rot, turnSpeed * Time.deltaTime);
             yield return null;
@@ -122,12 +134,32 @@ public class Guard : MonoBehaviour
         }
     }
 
-    bool isTargetFound()
+
+    void detectPlayer()
     {
-        if (Vector2.Distance(transform.position,PlayerObj.transform.position) < viewDistance)
+        Collider2D[] objectsInRange = Physics2D.OverlapCircleAll(transform.position, radius);
+
+        foreach (Collider2D item in objectsInRange)
         {
-            
+            Debug.DrawLine(transform.position, item.transform.position, Color.yellow);
+            if (item.gameObject.layer == 8)
+            {
+                Vector2 targetDir = item.transform.position - transform.position;
+                float angle = Vector2.Angle(transform.up, targetDir);
+
+                if (angle < viewAngle)
+                {
+                    Debug.DrawRay(transform.position, targetDir.normalized * 8, Color.magenta);
+                    RaycastHit2D hit = Physics2D.Raycast(transform.position, targetDir.normalized, radius);
+
+                    isPlayerVisible = true;
+                }
+                else
+                {
+                    isPlayerVisible = false;
+                }
+
+            }
         }
-        return false;
     }
 }
