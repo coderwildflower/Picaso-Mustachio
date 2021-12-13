@@ -16,18 +16,18 @@ public class PlayerControl : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        Move();
+        Move(Time.fixedDeltaTime);
     }
 
-    void Move()
+    void Move(float delta)
     {
         float xInput = Input.GetAxisRaw("Horizontal");
         float yInput = Input.GetAxisRaw("Vertical");
 
         Vector3 inputDir = new Vector2(xInput, yInput).normalized;
-        transform.position += inputDir * MoveSpeed * Time.deltaTime;
+        transform.position += inputDir * MoveSpeed * delta;
 
         if (inputDir.x < 0)
         {
