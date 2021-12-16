@@ -14,44 +14,46 @@ public class FieldOfView : MonoBehaviour
 
     public float angle;
 
-    private float viewDistance;
+    public float viewDistance=10;
     public LayerMask obstacleLayer;
+    Vector3 lp;
 
     public Guard _guard;
     // Start is called before the first frame update
     void Start()
     {
         Init();
+        lp=transform.position;
     }
 
     void Init()
     {
         //Draw Mesh
         mesh = new Mesh();
-        _meshFilter.mesh = mesh;
-        viewDistance = _guard.Radius;
-
+        _meshFilter.mesh = mesh;  
     }
 
     private void Update()
     {
-        DrawFOV();
+        //if(lp!=transform.position)
+            DrawFOV();
     }
 
     void DrawFOV()
     {
+        lp=transform.position;
         //set fov values
         int stepCount = Mathf.RoundToInt(angle * meshResolution);
-        float stepAnglesize = angle / stepCount;
+        float stepAnglesize = angle / stepCount;       
      
         List<Vector3> viewPoints = new List<Vector3>();
 
         for (int i = 0; i <= stepCount; i++)
         {
-            float currentAngle = transform.eulerAngles.y - angle / 2 + stepAnglesize * i;
+            float currentAngle = transform.eulerAngles.y - (angle / 2) + (stepAnglesize * i);
             viewCastInfo newViewCast = viewCast(currentAngle);
             viewPoints.Add(newViewCast.point);
-            Debug.DrawLine(transform.position, transform.position + dirFromAngle(currentAngle, false) * viewDistance, Color.red);
+            Debug.DrawLine(transform.position, newViewCast.point, Color.red);
         }
 
         int vertexCount = viewPoints.Count + 1;
@@ -82,17 +84,16 @@ public class FieldOfView : MonoBehaviour
     viewCastInfo viewCast(float globalAngle)
     {
         Vector3 dir = dirFromAngle(globalAngle, true);
-        RaycastHit hit;
+        RaycastHit2D hit=Physics2D.Raycast(transform.position, dir,viewDistance);
 
-        if (Physics.Raycast(transform.position, dir, out hit, viewDistance, 10))
+        if (hit && hit.point!=Vector2.zero)
         {
-            Debug.Log("HIT");
+            //Debug.Log("HIT");
             return new viewCastInfo(true, hit.point, hit.distance, globalAngle);
-
         }
         else
         {
-            return new viewCastInfo(false, transform.position + dir * viewDistance, viewDistance, globalAngle);
+            return new viewCastInfo(false, transform.position + (dir * viewDistance), viewDistance, globalAngle);
         }
     }
 
@@ -103,7 +104,7 @@ public class FieldOfView : MonoBehaviour
         {
             angleInDeg += transform.eulerAngles.y;
         }
-        return new Vector3(Mathf.Sin(angleInDeg * Mathf.Rad2Deg), Mathf.Cos(angleInDeg * Mathf.Rad2Deg));
+        return new Vector3(Mathf.Sin(angleInDeg * Mathf.Deg2Rad), Mathf.Cos(angleInDeg * Mathf.Deg2Rad));
     }
     //Handle raycast and its information
     public struct viewCastInfo
